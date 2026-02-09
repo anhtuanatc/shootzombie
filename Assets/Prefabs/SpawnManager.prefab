@@ -9,8 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3062965626241757723}
-  - component: {fileID: 2181582547327541403}
-  - component: {fileID: 7027647903979702282}
   - component: {fileID: 6662484255244138474}
   m_Layer: 0
   m_Name: SpawnManager
@@ -35,39 +33,6 @@ Transform:
   - {fileID: 7210660008195784459}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2181582547327541403
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5268372294750357806}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bc7095cc2154da64abf5883eb439b788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyPrefabs:
-  - {fileID: 520286464390927021, guid: 3ed081f2aea60054ba65a9f2e1df1b58, type: 3}
-  - {fileID: 520286464390927021, guid: 3c63644f99f3e964390cb8ccb13d5753, type: 3}
-  - {fileID: 520286464390927021, guid: c0c54c3d5874d004790fc798086e60e4, type: 3}
-  spawnPoints: {fileID: 3062965626241757723}
-  spawnDelay: 2
-  spawnInterval: 2
-  player: {fileID: 0}
---- !u!114 &7027647903979702282
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5268372294750357806}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 553da858344acf641bd9d0a3da4da1a8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  totalHealth: 200
 --- !u!65 &6662484255244138474
 BoxCollider:
   m_ObjectHideFlags: 0
