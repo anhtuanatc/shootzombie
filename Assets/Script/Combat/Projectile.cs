@@ -1,6 +1,7 @@
 using UnityEngine;
 using ShootZombie.Core;
 using ShootZombie.Enemy;
+using ShootZombie.Player;
 
 namespace ShootZombie.Combat
 {
@@ -17,6 +18,7 @@ namespace ShootZombie.Combat
         [Header("Damage")]
         [SerializeField] private int damage = 20;
         [SerializeField] private bool damageEnemies = true;
+        [SerializeField] private bool damagePlayer = false;
         [SerializeField] private bool damageSpawners = true;
         
         [Header("Lifetime")]
@@ -114,7 +116,7 @@ namespace ShootZombie.Combat
             // Reset rigidbody
             if (_rigidbody != null)
             {
-                _rigidbody.velocity = Vector3.zero;
+                _rigidbody.linearVelocity = Vector3.zero;
                 _rigidbody.angularVelocity = Vector3.zero;
             }
             
@@ -139,12 +141,26 @@ namespace ShootZombie.Combat
         {
             if (_hasHit) return;
             
-            ProcessHit(collision.gameObject, collision.contacts[0].point, collision.contacts[0].normal);
+            GameObject hitObj = collision.gameObject;
+            
+            // Bỏ qua va chạm với đạn khác
+            if (hitObj.GetComponent<Projectile>() != null) return;
+            
+            // Bỏ qua va chạm với Player nếu không được phép damage player
+            if (!damagePlayer && (hitObj.CompareTag("Player") || hitObj.GetComponent<PlayerHealth>() != null)) return;
+            
+            ProcessHit(hitObj, collision.contacts[0].point, collision.contacts[0].normal);
         }
 
         private void HandleTrigger(Collider other)
         {
             if (_hasHit) return;
+            
+            // Bỏ qua va chạm với đạn khác
+            if (other.GetComponent<Projectile>() != null) return;
+            
+            // Bỏ qua va chạm với Player nếu không được phép damage player
+            if (!damagePlayer && (other.CompareTag("Player") || other.GetComponent<PlayerHealth>() != null)) return;
             
             Vector3 hitPoint = other.ClosestPoint(transform.position);
             Vector3 hitNormal = (transform.position - hitPoint).normalized;
@@ -172,9 +188,22 @@ namespace ShootZombie.Combat
                     didDamage = true;
                     Debug.Log($"[Projectile] Hit {hitObject.name}, dealt {damage} damage!");
                 }
-                else
+            }
+            
+            // Try to damage player
+            if (damagePlayer)
+            {
+                var playerHealth = hitObject.GetComponent<PlayerHealth>();
+                if (playerHealth == null)
                 {
-                    Debug.Log($"[Projectile] Hit {hitObject.name} but no IDamageable found.");
+                    playerHealth = hitObject.GetComponentInParent<PlayerHealth>();
+                }
+                
+                if (playerHealth != null)
+                {
+                    playerHealth.TakeDamage(damage);
+                    didDamage = true;
+                    Debug.Log($"[Projectile] Hit Player {hitObject.name}, dealt {damage} damage!");
                 }
             }
             
@@ -253,7 +282,7 @@ namespace ShootZombie.Combat
             // Stop movement
             if (_rigidbody != null)
             {
-                _rigidbody.velocity = Vector3.zero;
+                _rigidbody.linearVelocity = Vector3.zero;
             }
             
             Despawn();
@@ -293,7 +322,7 @@ namespace ShootZombie.Combat
         {
             if (_rigidbody != null)
             {
-                _rigidbody.velocity = velocity;
+                _rigidbody.linearVelocity = velocity;
             }
         }
         
@@ -312,7 +341,7 @@ namespace ShootZombie.Combat
             
             if (_rigidbody != null)
             {
-                _rigidbody.velocity = Vector3.zero;
+                _rigidbody.linearVelocity = Vector3.zero;
                 _rigidbody.angularVelocity = Vector3.zero;
             }
             

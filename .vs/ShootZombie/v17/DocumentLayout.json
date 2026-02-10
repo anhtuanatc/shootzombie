@@ -3,7 +3,11 @@
   "WorkspaceRootPath": "D:\\MyProject\\shootzombie\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{C445EDEC-8894-263E-A2BD-92B23B559871}|Assembly-CSharp.csproj|d:\\myproject\\shootzombie\\assets\\script\\player\\playershooting.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{C445EDEC-8894-263E-A2BD-92B23B559871}|Assembly-CSharp.csproj|d:\\myproject\\shootzombie\\assets\\script\\combat\\projectile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C445EDEC-8894-263E-A2BD-92B23B559871}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\combat\\projectile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C445EDEC-8894-263E-A2BD-92B23B559871}|Assembly-CSharp.csproj|D:\\MyProject\\shootzombie\\assets\\script\\player\\playershooting.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C445EDEC-8894-263E-A2BD-92B23B559871}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\player\\playershooting.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -13,10 +17,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{C445EDEC-8894-263E-A2BD-92B23B559871}|Assembly-CSharp.csproj|D:\\MyProject\\shootzombie\\assets\\script\\utilities\\quickdiagnostic.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C445EDEC-8894-263E-A2BD-92B23B559871}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\utilities\\quickdiagnostic.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{C445EDEC-8894-263E-A2BD-92B23B559871}|Assembly-CSharp.csproj|D:\\MyProject\\shootzombie\\assets\\script\\combat\\projectile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C445EDEC-8894-263E-A2BD-92B23B559871}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\combat\\projectile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{C445EDEC-8894-263E-A2BD-92B23B559871}|Assembly-CSharp.csproj|D:\\MyProject\\shootzombie\\assets\\script\\ui\\components\\floatingtext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -120,32 +120,32 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "PlayerShooting.cs",
               "DocumentMoniker": "D:\\MyProject\\shootzombie\\Assets\\Script\\Player\\PlayerShooting.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Player\\PlayerShooting.cs",
               "ToolTip": "D:\\MyProject\\shootzombie\\Assets\\Script\\Player\\PlayerShooting.cs",
               "RelativeToolTip": "Assets\\Script\\Player\\PlayerShooting.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAALAAAAAIAAAAAAAAAA==",
+              "ViewState": "AgIAAAoAAAAAAAAAAMBtwL0AAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T11:09:54.456Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-08T11:09:54.456Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
               "Title": "Projectile.cs",
               "DocumentMoniker": "D:\\MyProject\\shootzombie\\Assets\\Script\\Combat\\Projectile.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Combat\\Projectile.cs",
               "ToolTip": "D:\\MyProject\\shootzombie\\Assets\\Script\\Combat\\Projectile.cs",
               "RelativeToolTip": "Assets\\Script\\Combat\\Projectile.cs",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAcwFoAAAAIAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIkAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-08T11:00:43.384Z"
+              "WhenOpened": "2026-02-08T11:00:43.384Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -161,7 +161,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "PlayerMovement.cs",
               "DocumentMoniker": "D:\\MyProject\\shootzombie\\Assets\\Script\\Player\\PlayerMovement.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Player\\PlayerMovement.cs",
@@ -173,7 +173,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "QuickDiagnostic.cs",
               "DocumentMoniker": "D:\\MyProject\\shootzombie\\Assets\\Script\\Utilities\\QuickDiagnostic.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Utilities\\QuickDiagnostic.cs",

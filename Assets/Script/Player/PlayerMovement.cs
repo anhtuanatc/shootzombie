@@ -163,7 +163,7 @@ namespace ShootZombie.Player
                 // Stop Rigidbody immediately
                 if (_rigidbody != null)
                 {
-                    _rigidbody.velocity = new Vector3(0, _rigidbody.velocity.y, 0);
+                    _rigidbody.linearVelocity = new Vector3(0, _rigidbody.linearVelocity.y, 0);
                 }
                 
                 return;

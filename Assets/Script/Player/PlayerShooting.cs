@@ -47,6 +47,16 @@ namespace ShootZombie.Player
         [Tooltip("Delay trước khi đạn được bắn ra (để sync với animation)")]
         [SerializeField] private float shootDelay = 0.20f;
         
+        [Header("Multi-Shot (Shotgun Style)")]
+        [Tooltip("Số đạn bắn ra mỗi lần")]
+        [SerializeField] private int bulletsPerShot = 3;
+        
+        [Tooltip("Góc spread giữa các viên đạn (độ)")]
+        [SerializeField] private float spreadAngle = 15f;
+        
+        [Tooltip("Khoảng cách ngang giữa các viên đạn tại điểm spawn")]
+        [SerializeField] private float spawnSpreadDistance = 0.3f;
+        
         #endregion
 
         #region Properties
@@ -77,6 +87,9 @@ namespace ShootZombie.Player
         
         // Cached aim direction for shooting
         private Vector3 _aimDirection;
+        
+        // Lưu hướng bắn chính xác tại thời điểm click (không bị thay đổi bởi delay)
+        private Vector3 _savedShootDirection;
         
         // Reference to PlayerMovement for stopping
         private PlayerMovement _playerMovement;
@@ -185,16 +198,39 @@ namespace ShootZombie.Player
             
             _nextFireTime = Time.time + fireRate;
             
-            // Xoay player về hướng chuột NGAY LẬP TỨC
+            // LOCK ROTATION TRƯỚC (ngăn PlayerMovement ghi đè)
+            if (_playerMovement != null)
+            {
+                _playerMovement.CanRotate = false;
+            }
+            
+            // Tính hướng ngắm và xoay player
             RotateTowardMouseInstant();
             
-            // Dừng di chuyển và LOCK ROTATION khi bắn
+            // Lưu hướng bắn = hướng player đang nhìn sau khi đã xoay
+            // QUAN TRỌNG: Dùng _aimDirection.normalized thay vì transform.forward
+            // Lý do: Model player có thể bị nghiêng do animation/physics, khiến transform.forward hướng lên trời/xuống đất
+            if (_aimDirection.sqrMagnitude > 0.001f)
+            {
+                _savedShootDirection = _aimDirection.normalized;
+                _savedShootDirection.y = 0; // Đảm bảo bắn thẳng ngang
+            }
+            else
+            {
+                _savedShootDirection = transform.forward;
+                _savedShootDirection.y = 0;
+            }
+            
+            #if UNITY_EDITOR
+            Debug.Log($"[Shoot] AimDir: {_aimDirection}, SavedDir: {_savedShootDirection}, Forward: {transform.forward}");
+            #endif
+            
+            // Dừng di chuyển khi bắn
             if (stopWhenShooting && _playerMovement != null)
             {
                 _playerMovement.CanMove = false;
-                _playerMovement.CanRotate = false; // Giữ nguyên hướng đang nhìn
                 CancelInvoke(nameof(EnableMovement));
-                Invoke(nameof(EnableMovement), stopDuration); // Di chuyển + xoay lại sau 0.30s
+                Invoke(nameof(EnableMovement), stopDuration);
             }
             
             // Animation trigger NGAY
@@ -228,29 +264,52 @@ namespace ShootZombie.Player
         /// </summary>
         private void SpawnBulletDelayed()
         {
-            // Spawn bullet
-            GameObject bullet = SpawnBullet();
-            
-            if (bullet != null)
+            // Bắn nhiều đạn với góc spread
+            for (int i = 0; i < bulletsPerShot; i++)
             {
-                // Apply force theo hướng đang ngắm
-                Rigidbody rb = bullet.GetComponent<Rigidbody>();
-                if (rb != null)
+                // Tính góc cho viên đạn này
+                float angleOffset = 0f;
+                float positionOffset = 0f;
+                
+                if (bulletsPerShot > 1)
                 {
-                    rb.velocity = Vector3.zero; // Reset velocity if pooled
+                    // Chia đều góc spread
+                    float halfSpread = spreadAngle / 2f;
+                    angleOffset = Mathf.Lerp(-halfSpread, halfSpread, (float)i / (bulletsPerShot - 1));
                     
-                    // Bắn theo hướng player đang nhìn
-                    Vector3 shootDirection = _aimDirection.normalized;
-                    if (shootDirection.magnitude < 0.1f)
+                    // Chia đều khoảng cách spawn
+                    float halfDistance = spawnSpreadDistance * (bulletsPerShot - 1) / 2f;
+                    positionOffset = Mathf.Lerp(-halfDistance, halfDistance, (float)i / (bulletsPerShot - 1));
+                }
+                
+                // Tính hướng với góc offset
+                Vector3 shootDirection = Quaternion.Euler(0, angleOffset, 0) * _savedShootDirection;
+                
+                // Tính vị trí spawn với offset ngang (perpendicular to shoot direction)
+                Vector3 right = Vector3.Cross(Vector3.up, _savedShootDirection).normalized;
+                Vector3 spawnPosition = firePoint.position + right * positionOffset;
+                
+                // Spawn bullet tại vị trí offset
+                GameObject bullet = SpawnBulletAtPosition(spawnPosition);
+                
+                if (bullet != null)
+                {
+                    Rigidbody rb = bullet.GetComponent<Rigidbody>();
+                    if (rb != null)
                     {
-                        shootDirection = transform.forward; // Fallback
+                        rb.linearVelocity = Vector3.zero;
+                        rb.angularVelocity = Vector3.zero;
+                        rb.AddForce(shootDirection * bulletForce, ForceMode.Impulse);
+                        
+                        #if UNITY_EDITOR
+                        Debug.DrawRay(bullet.transform.position, shootDirection * 10f, Color.red, 2f);
+                        Debug.Log($"[Shot {i}] SpawnPos: {spawnPosition} | Dir: {shootDirection}");
+                        #endif
                     }
-                    
-                    rb.AddForce(shootDirection * bulletForce, ForceMode.Impulse);
                 }
             }
             
-            // Effects (muzzle flash, sound) cũng delay theo đạn
+            // Effects (muzzle flash, sound)
             PlayShootEffects();
         }
         
@@ -276,11 +335,18 @@ namespace ShootZombie.Player
             
             Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
             
-            // Cách 1: Raycast xuống ground (chính xác hơn với mọi góc camera)
-            if (Physics.Raycast(ray, out RaycastHit groundHit, 100f, LayerMask.GetMask("Ground", "Default")))
+            // Phương pháp CHÍNH: Dùng Plane tại độ cao của SÚNG (FirePoint)
+            // Thay vì độ cao của Player (chân). Điều này giúp vị trí chuột và đạn trùng nhau về phối cảnh.
+            float planeHeight = (firePoint != null) ? firePoint.position.y : transform.position.y;
+            Plane playerPlane = new Plane(Vector3.up, new Vector3(0, planeHeight, 0));
+            
+            if (playerPlane.Raycast(ray, out float distance))
             {
-                Vector3 mouseWorldPosition = groundHit.point;
-                _aimDirection = mouseWorldPosition - transform.position;
+                Vector3 mouseWorldPosition = ray.GetPoint(distance);
+                
+                // Tính hướng: Vị trí chuột (ở độ cao súng) - Vị trí player (đã chỉnh Y = độ cao súng)
+                Vector3 playerPosAtGunHeight = new Vector3(transform.position.x, planeHeight, transform.position.z);
+                _aimDirection = mouseWorldPosition - playerPosAtGunHeight;
                 _aimDirection.y = 0; // Giữ trên mặt phẳng ngang
                 
                 if (_aimDirection.magnitude > 0.1f)
@@ -288,42 +354,36 @@ namespace ShootZombie.Player
                     transform.rotation = Quaternion.LookRotation(_aimDirection);
                     
                     #if UNITY_EDITOR
-                    Debug.DrawLine(transform.position, mouseWorldPosition, Color.cyan, 0.1f);
-                    Debug.DrawRay(transform.position, _aimDirection.normalized * 3f, Color.yellow, 0.1f);
-                    #endif
-                }
-                return;
-            }
-            
-            // Cách 2: Fallback - dùng Plane nếu không có ground
-            Plane playerPlane = new Plane(Vector3.up, transform.position);
-            
-            if (playerPlane.Raycast(ray, out float distance))
-            {
-                Vector3 mouseWorldPosition = ray.GetPoint(distance);
-                _aimDirection = mouseWorldPosition - transform.position;
-                _aimDirection.y = 0;
-                
-                if (_aimDirection.magnitude > 0.1f)
-                {
-                    transform.rotation = Quaternion.LookRotation(_aimDirection);
+                    // Debug: Vẽ đường từ player đến vị trí chuột (CYAN)
+                    Debug.DrawLine(transform.position, mouseWorldPosition, Color.cyan, 2f);
+                    // Debug: Vẽ hướng bắn (YELLOW)
+                    Debug.DrawRay(transform.position, _aimDirection.normalized * 5f, Color.yellow, 2f);
                     
-                    #if UNITY_EDITOR
-                    Debug.DrawLine(transform.position, mouseWorldPosition, Color.magenta, 0.1f);
+                    Debug.Log($"[Aim] WorldPos: {mouseWorldPosition} | AimDir: {_aimDirection.normalized}");
                     #endif
                 }
+            }
+            else
+            {
+                // Fallback: Nếu Plane không hoạt động (rất hiếm)
+                Debug.LogWarning("[PlayerShooting] Plane raycast failed! Camera might be parallel to ground.");
             }
         }
 
         private GameObject SpawnBullet()
         {
+            return SpawnBulletAtPosition(firePoint.position);
+        }
+        
+        private GameObject SpawnBulletAtPosition(Vector3 position)
+        {
             if (useObjectPooling && ObjectPool.HasInstance)
             {
-                return ObjectPool.Instance.Spawn(bulletPoolTag, firePoint.position, firePoint.rotation);
+                return ObjectPool.Instance.Spawn(bulletPoolTag, position, firePoint.rotation);
             }
             else
             {
-                return Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+                return Instantiate(bulletPrefab, position, firePoint.rotation);
             }
         }
         
